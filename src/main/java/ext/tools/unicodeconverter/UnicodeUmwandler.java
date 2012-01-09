@@ -61,10 +61,93 @@ import javax.swing.JTextField;
  * 
  */
 public class UnicodeUmwandler extends JFrame {
+    /**
+     * Hexadezimale Werte
+     */
+    public static final char HEX_WERTE[] = { '0', '1', '2', '3', '4', '5', '6',
+        '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
     private static final long serialVersionUID = 4657806856819445560L;
-    private JTextField tf = null;
-    private JButton wandelbutton = null;
+    
+    public static String holeEncodedString(final String text, final int ZIELENC)
+        throws UnsupportedEncodingException {
+        String rc = new String(text.getBytes("ISO-8859-1"), "UTF-8");
+        return rc;
+    }
+    
+    /**
+     * Wandelt einen UTF8-String in einen Java-String um.
+     * 
+     * @param alt
+     *            der UTF8-String
+     * @return der Java-String
+     */
+    public static String holeStringAusUTF8(final String alt) {
+        if (alt == null) {
+            return "";
+        }
+        if (alt.length() <= 0) {
+            return "";
+        }
+        char[] zeichen = alt.toCharArray();
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < zeichen.length; i++) {
+            int cp = Character.codePointAt(zeichen, i);
+            // Leerzeichen werden falsch interpretiert, wenn vor ihnen ein
+            // Unicode-Char ist
+            if (Character.isWhitespace(cp)) {
+                sb.append(' ');
+                continue;
+            }
+            /*
+             * Bei UTF8 werden 2 Byte gebraucht. isUniIdentStart sagt aus, ob
+             * vorherein solches Zeichen kam.Bei normalen Buchstaben wird TRUE
+             * zurueckgeliefert, beiUnicodes nur das 1. Byte TRUE, das 2. ist
+             * dann FALSE.Dieses Verhalten wird hier genutzt:
+             */
+            if (!Character.isUnicodeIdentifierStart(cp)) {
+                byte[] b2 = new byte[2];
+                b2[0] = (byte) zeichen[i - 1];
+                b2[1] = (byte) zeichen[i];
+                try {
+                    String tmp = new String(b2, "UTF-8");
+                    sb.deleteCharAt(sb.length() - 1);
+                    sb.append(tmp);
+                } catch (java.io.UnsupportedEncodingException e) {
+                }
+            } else {
+                sb.append(zeichen[i]);
+            }
+        }
+        return sb.toString();
+    }
+    
+    /**
+     * Liefert die Unicode-Nummer des Buchstaben auf index in s zurueck.
+     * 
+     * @param s
+     *            der String, der den Buchstaben enthaelt, dessen codePoint
+     *            gesucht ist
+     * @param index
+     *            der index des Buchstaben. Der 1. Buchstabe hat index=0, der 2.
+     *            hat index=1 usw.
+     * @return der codePoint. Durch NumKonverter.holeHexVonInt() kann die
+     *         hexadezimale Version erstellt werden.
+     */
+    public static int holeUnicodeDarstellung(final String s, final int index) {
+        int rc = 0;
+        rc = Character.codePointAt(s.toCharArray(), index);
+        return rc;
+    }
+    
+    public static void main(final String[] args) {
+        new UnicodeUmwandler();
+    }
+    
     private JTextArea jta = null;
+    
+    private JTextField tf = null;
+    
+    private JButton wandelbutton = null;
     
     /**
      * @throws java.awt.HeadlessException
@@ -93,7 +176,8 @@ public class UnicodeUmwandler extends JFrame {
              * 
              * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
              */
-            public void actionPerformed(ActionEvent e) {
+            @Override
+            public void actionPerformed(final ActionEvent e) {
                 String text = tf.getText();
                 jta.setText("Japanische Zeichen: \u65e5\u672c\u8a9e\u6587\u5b57\u5217\n");
                 for (int i = 0; i < text.length(); i++) {
@@ -126,12 +210,6 @@ public class UnicodeUmwandler extends JFrame {
         return rc;
     }
     
-    /**
-     * Hexadezimale Werte
-     */
-    public static final char HEX_WERTE[] = { '0', '1', '2', '3', '4', '5', '6',
-        '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
-    
     public String holeHexVonInt(final int wert) {
         StringBuffer sb = new StringBuffer();
         byte bytes[] = holeByteArrayVonInt(wert);
@@ -142,81 +220,6 @@ public class UnicodeUmwandler extends JFrame {
             byte highByte = (byte) ((aktByte & 0xF0) >> 4);
             sb.append(HEX_WERTE[highByte]);
             sb.append(HEX_WERTE[lowByte]);
-        }
-        return sb.toString();
-    }
-    
-    public static void main(String[] args) {
-        new UnicodeUmwandler();
-    }
-    
-    /**
-     * Liefert die Unicode-Nummer des Buchstaben auf index in s zurueck.
-     * 
-     * @param s
-     *            der String, der den Buchstaben enthaelt, dessen codePoint
-     *            gesucht ist
-     * @param index
-     *            der index des Buchstaben. Der 1. Buchstabe hat index=0, der 2.
-     *            hat index=1 usw.
-     * @return der codePoint. Durch NumKonverter.holeHexVonInt() kann die
-     *         hexadezimale Version erstellt werden.
-     */
-    public static int holeUnicodeDarstellung(String s, int index) {
-        int rc = 0;
-        rc = Character.codePointAt(s.toCharArray(), index);
-        return rc;
-    }
-    
-    public static String holeEncodedString(String text, int ZIELENC)
-        throws UnsupportedEncodingException {
-        String rc = new String(text.getBytes("ISO-8859-1"), "UTF-8");
-        return rc;
-    }
-    
-    /**
-     * Wandelt einen UTF8-String in einen Java-String um.
-     * 
-     * @param alt
-     *            der UTF8-String
-     * @return der Java-String
-     */
-    public static String holeStringAusUTF8(String alt) {
-        if (alt == null) {
-            return "";
-        }
-        if (alt.length() <= 0) {
-            return "";
-        }
-        char[] zeichen = alt.toCharArray();
-        StringBuffer sb = new StringBuffer();
-        for (int i = 0; i < zeichen.length; i++) {
-            int cp = Character.codePointAt(zeichen, i);
-            // Leerzeichen werden falsch interpretiert, wenn vor ihnen ein
-            // Unicode-Char ist
-            if (Character.isWhitespace(cp)) {
-                sb.append(' ');
-                continue;
-            }
-            /*
-             * Bei UTF8 werden 2 Byte gebraucht. isUniIdentStart sagt aus, ob
-             * vorherein solches Zeichen kam.Bei normalen Buchstaben wird TRUE
-             * zurueckgeliefert, beiUnicodes nur das 1. Byte TRUE, das 2. ist
-             * dann FALSE.Dieses Verhalten wird hier genutzt:
-             */
-            if (!Character.isUnicodeIdentifierStart((int) cp)) {
-                byte[] b2 = new byte[2];
-                b2[0] = (byte) zeichen[i - 1];
-                b2[1] = (byte) zeichen[i];
-                try {
-                    String tmp = new String(b2, "UTF-8");
-                    sb.deleteCharAt(sb.length() - 1);
-                    sb.append(tmp);
-                } catch (java.io.UnsupportedEncodingException e) {
-                }
-            } else {
-                sb.append(zeichen[i]);
-            }
         }
         return sb.toString();
     }
