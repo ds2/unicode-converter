@@ -1,0 +1,20 @@
+<project xmlns:ivy="antlib:org.apache.ivy.ant" name="unicode-converter" default="jar">
+	<property name="buildDir" value="target" />
+	<property name="targetVersion" value="0.0.1-SNAPSHOT" />
+	<property name="classesDir" value="${buildDir}/classes" />
+	<target name="resolve" description="--> retrieve dependencies with ivy">
+		<ivy:retrieve />
+	</target>
+	<target name="compile" depends="resolve">
+		<mkdir dir="${classesDir}" />
+		<javac destdir="${classesDir}" encoding="utf-8" srcdir="src/main/java" target="1.6">
+		</javac>
+	</target>
+	<target name="jar" depends="compile">
+		<jar destfile="${buildDir}/unicode-converter-${targetVersion}.jar">
+			<fileset dir="${classesDir}">
+				<include name="**/*.class" />
+			</fileset>
+		</jar>
+	</target>
+</project>

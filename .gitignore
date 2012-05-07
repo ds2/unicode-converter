@@ -1,4 +1,8 @@
-/.settings
-/.project
-/.classpath
+.settings
+.project
+.classpath
 target
+.checkstyle
+build
+.gradle
+bin
