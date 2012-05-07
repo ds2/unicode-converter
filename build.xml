@@ -15,6 +15,9 @@
 			<fileset dir="${classesDir}">
 				<include name="**/*.class" />
 			</fileset>
+			<manifest>
+				<attribute name="Main-Class" value="ext.tools.unicodeconverter.UnicodeUmwandler" />
+			</manifest>
 		</jar>
 	</target>
 </project>
